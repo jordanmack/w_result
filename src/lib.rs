@@ -7,11 +7,14 @@
 //! errors.
 //! 
 
+#![feature(try_trait)]
+
 #[macro_use]
 extern crate log;
 
 use std::fmt;
 use std::iter::FromIterator;
+use std::ops::Try;
 
 pub use self::WResult::*;
 
@@ -373,3 +376,20 @@ impl<A, T, W, E> FromIterator<WResult<A, W, E>> for WResult<T, W, E>
     }
 }
 
+impl<T, W, E> Try for WResult<T, W, E>
+{
+    type Ok = T;
+    type Error = E;
+
+    fn into_result(self) -> Result<T, E> {
+        self.result_discard()
+    }
+
+    fn from_ok(v: T) -> Self {
+        WResult::from(Ok(v))
+    }
+
+    fn from_error(v: E) -> Self {
+        WResult::from(Err(v))
+    }
+}
